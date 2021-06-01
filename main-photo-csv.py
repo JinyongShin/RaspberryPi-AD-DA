@@ -10,7 +10,7 @@ import RPi.GPIO as GPIO
 os.chdir("/home/pi/Data_Logging_Test") # test folder for 
 file = open("/home/pi/data_log_test.csv", "a")
 if os.stat("/home/pi/data_log_test.csv").st_size == 0:
-        file.write("Data #,Time,Potentiometer,Photosensor\n")
+        file.write("Time,Potentiometer,Photosensor\n")
 
 try:
     ADC = ADS1256.ADS1256()
