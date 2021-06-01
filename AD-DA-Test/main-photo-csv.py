@@ -7,7 +7,7 @@ import ADS1256
 import RPi.GPIO as GPIO
 
 
-os.chdir("/home/pi/Data_Logging_Test") # test folder for 
+os.chdir("/home/pi/Data_Logging_Test") # test folder location for saving data 
 file = open("/home/pi/data_log_test.csv", "a")
 if os.stat("/home/pi/data_log_test.csv").st_size == 0:
         file.write("Time,Potentiometer,Photosensor\n")
