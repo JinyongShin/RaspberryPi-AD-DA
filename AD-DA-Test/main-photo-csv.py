@@ -7,11 +7,23 @@ import ADS1256
 import RPi.GPIO as GPIO
 
 
-os.chdir("/home/pi/Data_Logging_Test") # test folder location for saving data 
-file = open("/home/pi/data_log_test.csv", "a")
-if os.stat("/home/pi/data_log_test.csv").st_size == 0:
-        file.write("Time,Potentiometer,Photosensor\n")
+filename = datetime.datetime.now()
+with open(filename.strftime("%d-%m-%Y)+".csv","a") as file:
+                            file.write("Time,Potentiometer,Photosensor\n")
+        
 
+
+
+# os.chdir("/home/pi/Data_Logging_Test") # test folder location for saving data 
+# file = open("/home/pi/data_log_test.csv", "a")
+# if os.stat("/home/pi/data_log_test.csv").st_size == 0:
+#        file.write("Time,Potentiometer,Photosensor\n")
+        
+        
+        
+
+        
+        
 try:
     ADC = ADS1256.ADS1256()
     ADC.ADS1256_init()
