@@ -24,13 +24,12 @@ try:
         ADC_Value = ADC.ADS1256_GetAll()
         
         write_api = client.write_api(write_options=SYNCHRONOUS)
-        sequence = ["TEST1,host=host1 POTENTIOMETER=", #need data
-            "TEST1,host=host1 PHOTOSENSOR="] #need data
+        sequence = ["TEST1,host=host1 POTENTIOMETER={ADC_Value[0]*5.0/0x7fffff}", #need data
+            "TEST1,host=host1 PHOTOSENSOR={ADC_Value[1]*5.0/0x7fffff}"] #need data
 #         time.sleep(0.1) #10 data points every second
         print(ADC_Value[0]*5.0/0x7fffff)
         print(ADC_Value[1]*5.0/0x7fffff)
         print ("\33[9A")
-
         
 except :
     GPIO.cleanup()
