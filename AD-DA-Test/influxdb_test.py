@@ -15,7 +15,6 @@ bucket = "dev_bucket"
 
 client = InfluxDBClient(url="http://glin.saxire.net", token=token)
 
-
 try:
     ADC = ADS1256.ADS1256()
     ADC.ADS1256_init()
@@ -25,8 +24,8 @@ try:
         ADC_Value = ADC.ADS1256_GetAll()
         
         write_api = client.write_api(write_options=SYNCHRONOUS)
-        sequence = ["TEST1,host=host1 POTENTIOMETER=",
-            "TEST1,host=host1 PHOTOSENSOR="]
+        sequence = ["TEST1,host=host1 POTENTIOMETER=", #need data
+            "TEST1,host=host1 PHOTOSENSOR="] #need data
 #         time.sleep(0.1) #10 data points every second
         print(ADC_Value[0]*5.0/0x7fffff)
         print(ADC_Value[1]*5.0/0x7fffff)
