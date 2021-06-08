@@ -22,12 +22,12 @@ client = InfluxDBClient(url="http://glin.saxire.net", token=token)
 
 window = Tk()
 window.title("Helium Leak Detector")
-window.geometry("450x400")
+window.geometry("500x300")
 
-label0=Label(window,text='Input Test Information:', font=(14))
+label0=Label(window,text='Input Test Information:', font=(18))
 label0.grid(row=0,column=0,padx=5,pady=10)
 
-labelname=Label(window,text='Operator:')
+labelname=Label(window,text='Operator PIN:')
 labelname.grid(row=1,column=0,padx=5,pady=10)
 
 label1=Label(window,text='Production Order:')
@@ -42,8 +42,11 @@ label3.grid(row=4,column=0,padx=5,pady=10)
 label4=Label(window,text='Serial # (if applicable):')
 label4.grid(row=5,column=0,padx=5,pady=10)
 
-emptylabel = Label(window,text='',fg='green',font=(14))
-emptylabel.grid(row=6,column=0)
+emptylabel1 = Label(window,text='',fg='green',font=('bold',16))
+emptylabel1.grid(row=6,column=2)
+
+emptylabel2 = Label(window,text='',fg='blue',font=('bold',16))
+emptylabel2.grid(row=0,column=1)
 
 namedata=StringVar()
 data1=StringVar()
@@ -72,7 +75,7 @@ def submit_command():
     Quantity = data2.get()
     Material = data3.get()
     Serial = data4.get()
-    emptylabel.config(text='SUBMITTED')
+    emptylabel1.config(text='SUBMITTED')
     print(Name)
     print(WorkOrder)
     print(Quantity)
@@ -86,7 +89,7 @@ def clear_command():
     entry2.delete(0, END)
     entry3.delete(0, END)
     entry4.delete(0, END)
-    emptylabel.config(text='')
+    emptylabel1.config(text='')
     return None
 
 def influxdb():
@@ -116,25 +119,35 @@ def influxdb():
 def switch_on():
     global switch  
     switch = True  
-    print ('switch on')   
+    print ('Test Started')
+    emptylabel2.config(text='TESTING')
     influxdb()
 
 def switch_off():  
     global switch  
     switch = False
-    print ('switch off')
+    print ('Test Ended')
+    emptylabel2.config(text='')
+
+def kill():
+ global switch  
+ switch = False 
+ window.destroy()
 
 
 submit_button = Button(window, text="Submit" , command=submit_command)
-submit_button.grid(row=6,column=1)
+submit_button.grid(row=2,column=2, padx=25)
 
 clear_button = Button(window, text="Clear All" , command=clear_command)
-clear_button.grid(row=7,column=1, pady = 5)
+clear_button.grid(row=3,column=2, pady = 5, padx=25)
 
-begin_button = Button(window, text="Begin Test" , command=switch_on)
-begin_button.grid(row=8,column=0,pady = 10)
+begin_button = Button(window, text="Start Recording" , command=switch_on)
+begin_button.grid(row=6,column=0,pady = 5)
 
-end_button = Button(window, text="End Test" , command=switch_off)
-end_button.grid(row=8,column=1,pady = 10)
+end_button = Button(window, text="End Recording" , command=switch_off)
+end_button.grid(row=6,column=1,pady = 5)
+
+exit_button = Button(window, text="EXIT" , command=kill)
+exit_button.grid(row=4,column=2,pady=5, padx=25)
 
 window.mainloop()
