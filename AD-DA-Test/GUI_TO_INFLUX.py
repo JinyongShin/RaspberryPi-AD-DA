@@ -48,14 +48,14 @@ emptylabel1.grid(row=6,column=2)
 emptylabel2 = Label(window,text='',fg='blue',font=('bold',16))
 emptylabel2.grid(row=0,column=1)
 
-namedata=StringVar()
+PINdata=StringVar()
 data1=StringVar()
 data2=StringVar()
 data3=StringVar()
 data4=StringVar()
 
-entryname = Entry(window, textvariable=namedata)
-entryname.grid(row = 1,column = 1)
+entryPIN = Entry(window, textvariable=PINdata)
+entryPIN.grid(row = 1,column = 1)
 
 entry1 = Entry(window, textvariable=data1)
 entry1.grid(row = 2,column = 1)
@@ -70,13 +70,13 @@ entry4 = Entry(window, textvariable=data4)
 entry4.grid(row = 5,column = 1)
 
 def submit_command():
-    Name = namedata.get()
+    PIN = PINdata.get()
     WorkOrder = data1.get()
     Quantity = data2.get()
     Material = data3.get()
     Serial = data4.get()
     emptylabel1.config(text='SUBMITTED')
-    print(Name)
+    print(PIN)
     print(WorkOrder)
     print(Quantity)
     print(Material)
@@ -84,7 +84,7 @@ def submit_command():
     return None
 
 def clear_command():
-    entryname.delete(0, END)
+    entryPIN.delete(0, END)
     entry1.delete(0, END)
     entry2.delete(0, END)
     entry3.delete(0, END)
@@ -115,7 +115,6 @@ def influxdb():
     thread = threading.Thread(target=run)
     thread.start()
                        
-
 def switch_on():
     global switch  
     switch = True  
