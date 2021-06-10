@@ -1,4 +1,5 @@
 from datetime import datetime
+import time
 import ADS1256
 import RPi.GPIO as GPIO
 
@@ -76,15 +77,14 @@ def submit_command():
     Material = data3.get()
     Serial = data4.get()
     emptylabel1.config(text='SUBMITTED')
-    print(PIN)
-    print(WorkOrder)
-    print(Quantity)
-    print(Material)
-    print(Serial)
+#     print(PIN)
+#     print(WorkOrder)
+#     print(Quantity)
+#     print(Material)
+#     print(Serial)
     return None
 
 def clear_command():
-    entryPIN.delete(0, END)
     entry1.delete(0, END)
     entry2.delete(0, END)
     entry3.delete(0, END)
@@ -97,8 +97,8 @@ def influxdb():
         while (switch == True):
             ADC_Value = ADC.ADS1256_GetAll()
             write_api = client.write_api(write_options=SYNCHRONOUS)
-            point = Point("Helium Leak Test")\
-                .tag("Operator", "{}".format(namedata.get()))\
+            point = Point("Helium Leak Detector")\
+                .tag("Operator", "{}".format(PINdata.get()))\
                 .tag("Work Order","{}".format(data1.get()))\
                 .tag("Work Order Quantity","{}".format(data2.get()))\
                 .tag("Material #","{}".format(data3.get()))\
@@ -119,7 +119,7 @@ def switch_on():
     global switch  
     switch = True  
     print ('Test Started')
-    emptylabel2.config(text='TESTING')
+    emptylabel2.config(text='TESTING...')
     influxdb()
 
 def switch_off():  
