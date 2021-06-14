@@ -22,33 +22,34 @@ client = InfluxDBClient(url="http://glin.saxire.net", token=token)
 def open():
     window = Tk()
     window.title("Helium Leak Detector")
-    window.geometry("575x275")
+#     window.geometry("575x275")
+    window.attributes('-fullscreen',True)
     window.configure(bg='#132237')
-    window.eval('tk::PlaceWindow . center')
+#     window.eval('tk::PlaceWindow . center')
 
-    label0=Label(window,text='Helium Leak Detector Test',font=(24),fg='white',bg='#132237')
-    label0.grid(row=0,column=0,padx=10,pady=10)
+    label0=Label(window,text='Helium Leak Detector Test',font=('bold',18),fg='white',bg='#132237')
+    label0.grid(row=0,column=0,padx=20,pady=(20,10))
 
-    labelname=Label(window,text='Logged in as:\n {}'.format(list2[list1.index(pin)]),font=(10),fg='white',bg='#132237')
+    labelname=Label(window,text='Logged in as: {}'.format(list2[list1.index(pin)]),wraplength=300,font=('bold',16),fg='gray90',bg='#132237')
     labelname.grid(row=1,column=0)
 
-    label1=Label(window,text='Production Order:',fg='white',bg='#132237')
+    label1=Label(window,text='Production Order:',font=('bold',16),fg='white',bg='#132237')
     label1.grid(row=2,column=0,padx=5,pady=10)
 
-    label2=Label(window,text='Production Order Quantity:',fg='white',bg='#132237')
+    label2=Label(window,text='Production Order Quantity:',font=('bold',16),fg='white',bg='#132237')
     label2.grid(row=3,column=0,padx=5,pady=10)
 
-    label3=Label(window,text='Material #:',fg='white',bg='#132237')
+    label3=Label(window,text='Material #:',font=('bold',16),fg='white',bg='#132237')
     label3.grid(row=4,column=0,padx=5,pady=10)
 
-    label4=Label(window,text='Serial # (if applicable):',fg='white',bg='#132237')
+    label4=Label(window,text='Serial # (if applicable):',font=('bold',16),fg='white',bg='#132237')
     label4.grid(row=5,column=0,padx=5,pady=10)
 
-    emptylabel2 = Label(window,text='',fg='dodger blue',font=('bold',16),bg='#132237')
-    emptylabel2.grid(row=0,column=1)
+    emptylabel2 = Label(window,text='',fg='yellow',font=('bold',20),bg='#132237')
+    emptylabel2.grid(row=1,column=1)
 
-    emptylabel4 = Label(window,text='',fg='red',font=('bold',16),bg='#132237')
-    emptylabel4.grid(row=0,column=2)
+    emptylabel4 = Label(window,text='',fg='red',font=('bold',20),bg='#132237')
+    emptylabel4.grid(row=1,column=2)
 
     data1=StringVar()
     data2=StringVar()
@@ -56,17 +57,17 @@ def open():
     data4=StringVar()
 
     entry1 = Entry(window, textvariable=data1)
-    entry1.grid(row = 2,column = 1)
+    entry1.grid(row = 2,column = 1,ipadx=30,ipady=5)
     entry1.focus_set()
 
     entry2 = Entry(window, textvariable=data2)
-    entry2.grid(row = 3,column = 1)
+    entry2.grid(row = 3,column = 1,ipadx=30,ipady=5)
 
     entry3 = Entry(window, textvariable=data3)
-    entry3.grid(row = 4,column = 1)
+    entry3.grid(row = 4,column = 1,ipadx=30,ipady=5)
 
     entry4 = Entry(window, textvariable=data4)
-    entry4.grid(row = 5,column = 1)
+    entry4.grid(row = 5,column = 1,ipadx=30,ipady=5)
 
     def clear_command():
         entry1.delete(0, END)
@@ -117,21 +118,21 @@ def open():
         emptylabel4.config(text='')
         
     def kill():
-     global switch  
-     switch = False 
-     window.destroy()
+        global switch  
+        switch = False 
+        window.destroy()
 
-    clear_button = Button(window, text="Clear All" ,fg='white', bg='firebrick3',command=clear_command)
-    clear_button.grid(row=4,column=2, pady = 5)
+    clear_button = Button(window, text="Clear All" ,font=('bold',16),fg='white', bg='firebrick4',command=clear_command)
+    clear_button.grid(row=3,column=2, padx=25,pady=5,ipadx=10, ipady=10)
 
-    exit_button = Button(window, text="EXIT" ,fg='white', bg='firebrick4',command=kill)
-    exit_button.grid(row=5,column=2,pady=5)
+    exit_button = Button(window, text="EXIT" ,font=('bold',16),fg='white', bg='firebrick4',command=kill)
+    exit_button.grid(row=4,column=2,padx=25,pady=5,ipadx=10, ipady=10)
 
-    begin_button = Button(window, text="Start Recording" ,fg='white', bg='firebrick3',command=switch_on)
-    begin_button.grid(row=2,column=2,pady = 5, padx=15)
+    begin_button = Button(window, text="Start Recording" ,font=('bold',20),fg='white', bg='firebrick4',command=switch_on)
+    begin_button.grid(row=6,column=0,pady=25,padx=15,ipady=20)
 
-    end_button = Button(window, text="End Recording" ,fg='white', bg='firebrick3',command=switch_off)
-    end_button.grid(row=3,column=2,pady = 5, padx=15)
+    end_button = Button(window, text="End Recording" ,font=('bold',20),fg='white', bg='firebrick4',command=switch_off)
+    end_button.grid(row=6,column=1,pady=25, padx=15,ipady=20)
 
 
     mainloop()
@@ -142,6 +143,9 @@ def code(value):
     global pin
     global list1, list2  
 
+    def default_label():
+        labelOP.config(text='Input Operator PIN:')
+
     if value == '*':
         pin = pin[:-1]
         e.delete('0', 'end')
@@ -150,16 +154,18 @@ def code(value):
     elif value == '#':
 
 
-# examples of pins and names  
+        # examples of pins and names  
         list1 = ['3529','4324','5452','0000','1234']
-        list2 = ['John Smith', 'Joe Smith', 'Don Julio', 'Ron Burgandy','Jesse Greyshock']
+        list2 = ['John Smith', 'Joe Smith', 'James Smith', 'Jim Smith','Jesse Greyshock']
 
         if pin in list1:
             root.destroy()
             open()
-            print("PIN OK")
+#             print("PIN OK")
         else:
-            print("PIN ERROR!", pin)
+#             print("PIN ERROR!", pin)
+            labelOP.config(text='PIN ERROR!')
+            root.after(1000, default_label)
             pin = ''
             e.delete('0', 'end')
 
@@ -177,32 +183,49 @@ pin = ''
 
 root = Tk()
 root.title("PIN")
-root.eval('tk::PlaceWindow . center')
+root.configure(bg='#132237')
+# width=root.winfo_screenwidth()
+# height=root.winfo_screenheight()
+root.attributes('-fullscreen',True)
+# root.eval('tk::PlaceWindow . center')
 
+labeltitle=Label(root,text='Helium Leak Detector Test',font=('bold',16),fg='white',bg='#132237')
+labeltitle.grid(row=0,column=0,padx=20,pady=(20,0))
 
-labelOP=Label(root,text='Input Operator PIN:',font=(12))
-labelOP.grid(row=0,column=0,columnspan=3,padx=5,pady=10)
-
+labelOP=Label(root,text='Input Operator PIN:',font=('bold',14),fg='white',bg='#132237')
+labelOP.grid(row=2,column=0,columnspan=2,sticky=S)
 
 global PINdata
 PINdata=StringVar()
 
 e = Entry(root,textvariable=PINdata)
-e.grid(row=1, column=0, columnspan=3, ipady=5)
+e.grid(row=3, column=0,columnspan=2,ipadx=20,ipady=10)
 
 for y, row in enumerate(keys, 2):
     for x, key in enumerate(row):
-        b = Button(root, text=key,font=('bold',16),command=lambda val=key:code(val))
-        b.grid(row=y, column=x, ipadx=10, ipady=10)
+        b = Button(root, text=key,font=('bold',36),fg='white', bg='firebrick3',command=lambda val=key:code(val))
+        b.grid(row=y, column=(x+2), ipadx=10, ipady=10)
         
-        bstar = Button(root, text='DONE', font=('bold',8),command=lambda val=key:code('#'),bg="palegreen1")
-        bstar.grid(row=5, column=2, ipadx=10, ipady=10)
+        bstar = Button(root, text='DONE', font=('bold',18),command=lambda val=key:code('#'),fg='white',bg="firebrick4")
+        bstar.grid(row=5, column=4, ipadx=10, ipady=10)
         
-        bback = Button(root, text='0', font=('bold',16),command=lambda val=key:code('0'))
-        bback.grid(row=5, column=1, ipadx=10, ipady=10)
+        bback = Button(root, text='0', font=('bold',36),fg='white', bg='firebrick3',command=lambda val=key:code('0'))
+        bback.grid(row=5, column=3, ipadx=10, ipady=10)
         
-        bback = Button(root, text='BACK', font=('bold',8),command=lambda val=key:code('*'),bg="khaki")
-        bback.grid(row=5, column=0, ipadx=10, ipady=10)
+        bback = Button(root, text='BACK', font=('bold',18),command=lambda val=key:code('*'),fg='white',bg="firebrick4")
+        bback.grid(row=5, column=2, ipadx=10, ipady=10)
+
+    def kill_PIN():
+        root.destroy()
+
+# labelblank=Label(root,text='',font=(6),fg='white',bg='#132237')
+# labelblank.grid(row=6,column=1,columnspan=3)
+
+pin_exit = Button(root, text='EXIT',font=('bold',18),command=kill_PIN,fg='white',bg="firebrick4")
+pin_exit.grid(row=7, column=3,pady=10,ipadx=10, ipady=5)
+
+labelblank=Label(root,text='              ',font=(20),fg='white',bg='#132237')
+labelblank.grid(row=4,column=1,padx=10,pady=10)
 
 
 mainloop()
