@@ -7,6 +7,8 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from tkinter import *
 import threading
 
+import mysql.connector
+
 
 switch = True
 ADC = ADS1256.ADS1256()
@@ -20,6 +22,7 @@ bucket = "dev_bucket"
 client = InfluxDBClient(url="http://glin.saxire.net", token=token)
 
 def open():
+    
     window = Tk()
     window.title("Helium Leak Detector")
 #     window.geometry("575x275")
@@ -30,7 +33,7 @@ def open():
     label0=Label(window,text='Helium Leak Detector Test',font=('bold',18),fg='white',bg='#132237')
     label0.grid(row=0,column=0,padx=20,pady=(20,10))
 
-    labelname=Label(window,text='Logged in as: {}'.format(list2[list1.index(pin)]),wraplength=300,font=('bold',16),fg='gray90',bg='#132237')
+    labelname=Label(window,text='Logged in as: {}'.format(UserName),wraplength=350,font=('bold',14),fg='gray80',bg='#132237')
     labelname.grid(row=1,column=0)
 
     label1=Label(window,text='Production Order:',font=('bold',16),fg='white',bg='#132237')
@@ -83,15 +86,20 @@ def open():
         def run():
             while (switch == True):
                 ADC_Value = ADC.ADS1256_GetAll()
+                R1 = 390
+                R2 = 150
+                Vout2 = ADC_Value[2]*5.0/0x7fffff
+                Vs2 = (Vout2*(R1+R2))/(R2)
                 write_api = client.write_api(write_options=SYNCHRONOUS)
                 point = Point("Helium Leak Detector")\
-                    .tag("Operator", "{}".format(list2[list1.index(pin)]))\
+                    .tag("Operator", "{}".format(UserName))\
                     .tag("Work Order","{}".format(data1.get()))\
                     .tag("Work Order Quantity","{}".format(data2.get()))\
                     .tag("Material #","{}".format(data3.get()))\
                     .tag("Serial #","{}".format(data4.get()))\
                     .field("Potentiometer", ADC_Value[0]*5.0/0x7fffff)\
                     .field("Photosensor", ADC_Value[1]*5.0/0x7fffff)\
+                    .field("Battery", Vs2)\
                     .time(datetime.utcnow(), WritePrecision.MS)
                 write_api.write(bucket, org, point)
                 print(ADC_Value[0]*5.0/0x7fffff)
@@ -122,7 +130,8 @@ def open():
         
     def kill():
         global switch  
-        switch = False 
+        switch = False
+        root.destroy()
         window.destroy()
 
     clear_button = Button(window, text="Clear All" ,font=('bold',16),fg='white', bg='firebrick4',command=clear_command)
@@ -140,14 +149,13 @@ def open():
 
     mainloop()
     
-    
-def code(value):
-    
-    global pin
-    global list1, list2  
+def default_label():
+    error_label.config(text='')
 
-    def default_label():
-        error_label.config(text='')
+def code(value):
+
+    global pin
+    global UserPIN, UserName
 
     if value == '*':
         pin = pin[:-1]
@@ -155,23 +163,31 @@ def code(value):
         e.insert('end', pin)
 
     elif value == '#':
+ 
+        serverIP='10.10.240.151'
+#         sqlDatabase = 'dt_users'
+#         sqlTable='users'
+        sqlUsername ='jgreyshock'
+        sqlPassword = 'Welcome21!'
 
+        cnx = mysql.connector.connect(user=sqlUsername, password=sqlPassword, host=serverIP)
+        cursor = cnx.cursor()
 
-        # examples of pins and names  
-        list1 = ['3529','4321','1394','0000','1234']
-        list2 = ['John Smith', 'Joe Smith', 'Rob Mrozek', 'Jim Smith','Jesse Greyshock']
+        selectString = 'select UserPIN, UserName from dt_users.users where UserPIN = {}'.format(pin)
+        cursor.execute(selectString)
+        fullResult = cursor.fetchall()
+        
+        for UserPIN, UserName in fullResult:
 
-        if pin in list1:
-            root.destroy()
-            open()
-#             print("PIN OK")
-        else:
-#             print("PIN ERROR!", pin)
-            error_label.config(text='PIN ERROR!')
-            root.after(1500, default_label)
-            pin = ''
-            e.delete('0', 'end')
-
+            if pin == UserPIN:
+                open()
+                
+            else:
+                error_label.config(text='PIN ERROR!')
+                root.after(1500, default_label)
+                pin = ''
+                e.delete('0', 'end')
+    
     else:
         pin += value
         e.insert('end', value)
@@ -187,8 +203,7 @@ pin = ''
 root = Tk()
 root.title("PIN")
 root.configure(bg='#132237')
-# width=root.winfo_screenwidth()
-# height=root.winfo_screenheight()
+# root.geometry("800x600")
 root.attributes('-fullscreen',True)
 # root.eval('tk::PlaceWindow . center')
 
@@ -198,8 +213,8 @@ labeltitle.grid(row=0,column=0,padx=20,pady=(20,0))
 labelOP=Label(root,text='Input Operator PIN:',font=('bold',14),fg='white',bg='#132237')
 labelOP.grid(row=1,column=0,columnspan=2,sticky=S)
 
-infolabel1=Label(root,text='V1, JTG 6/14/2021',font=('italics',8),fg='white',bg='#132237')
-infolabel1.grid(row=6,column=4,sticky=E)
+infolabel1root=Label(root,text='V1, JTG 6/14/2021',font=('italics',8),fg='white',bg='#132237')
+infolabel1root.grid(row=6,column=4,sticky=E)
 
 error_label=Label(root,text='',font=('bold',14),fg='white',bg='#132237')
 error_label.grid(row=3,column=0,columnspan=2,sticky=N)
