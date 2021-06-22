@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Helium_Leak_Detector
+Comment=Record and store data from Helium Leak Tests
+Exec=/home/pi/Helium_Leak_Detector/PIN_INFLUX_GUI.py
+Icon=/usr/share/pixmaps/IIVILOGO.png
+Terminal=false
+MultipleArgs=false
+Type=Application
+StartupNotify=true
