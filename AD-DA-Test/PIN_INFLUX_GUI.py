@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from datetime import datetime
 import ADS1256
 
@@ -18,7 +20,7 @@ ADC.ADS1256_init()
 # You can generate a Token from the "Tokens Tab" in the UI
 token = "88G02Se715xyc9nQUuM4YdMyMVTsMHEJ4lzgkyVYF81YPlsCknKqNildzZWXpArDOQPRl_8cMao2sUIETBksTg=="
 org = "saxire"
-bucket = "dev_bucket"
+bucket = "dev_bucket" # change to write to different bucket
 
 client = InfluxDBClient(url="http://glin.saxire.net", token=token)
 
@@ -27,8 +29,8 @@ Signal_He_FL = [0,3.07E-12,1.12E-11,2.08E-11,3.20E-11,4.51E-11,6.03E-11,7.80E-11
 Signal_He_GL = [0,3.07E-10,1.12E-09,2.08E-09,3.20E-09,4.51E-09,6.03E-09,7.80E-09,9.84E-09,1.22E-08,1.49E-08,1.80E-08,2.16E-08,2.57E-08,3.04E-08,3.57E-08,4.18E-08,4.88E-08,5.67E-08,6.56E-08,7.58E-08,8.74E-08,1.00E-07,1.15E-07,1.32E-07,1.51E-07,1.73E-07,1.97E-07,2.25E-07,2.56E-07,2.91E-07,3.30E-07,3.75E-07,4.25E-07,4.82E-07,5.46E-07,6.18E-07,6.99E-07,7.91E-07,8.93E-07,1.01E-06,1.14E-06,1.29E-06,1.45E-06,1.64E-06,1.85E-06,2.08E-06,2.35E-06,2.64E-06,2.98E-06,3.35E-06,3.77E-06,4.25E-06,4.78E-06,5.38E-06,6.05E-06,6.81E-06,7.66E-06,8.61E-06,9.68E-06,1.09E-05,1.22E-05,1.38E-05,1.55E-05,1.74E-05,1.95E-05,2.19E-05,2.46E-05,2.77E-05,3.11E-05,3.49E-05,3.92E-05,4.40E-05,4.95E-05,5.55E-05,6.24E-05,7.00E-05,7.86E-05,8.83E-05,9.91E-05,1.11E-04,1.25E-04,1.40E-04,1.57E-04,1.77E-04,1.98E-04,2.23E-04,2.50E-04,2.81E-04,3.15E-04,3.53E-04,3.97E-04,4.45E-04,5.00E-04,5.61E-04,6.29E-04,7.06E-04,7.93E-04,8.89E-04,9.98E-04,1.26E-03,1.58E-03,1.99E-03,2.51E-03,3.16E-03,3.98E-03,5.01E-03,6.31E-03,7.94E-03,1.00E-02,1.26E-02,1.58E-02,2.00E-02,2.51E-02,3.16E-02,3.98E-02,5.01E-02,6.31E-02,7.94E-02,1.00E-01,1.26E-01,1.58E-01,2.00E-01,2.51E-01,3.16E-01,3.98E-01,5.01E-01,6.31E-01,7.94E-01,1.00E+00]
 
 
-FL = interp1d(Volts, Signal_He_FL, kind = 'cubic')
-GL = interp1d(Volts, Signal_He_GL, kind = 'cubic')
+FL = interp1d(Volts, Signal_He_FL, kind = 'cubic') # Fine Leak (main)
+GL = interp1d(Volts, Signal_He_GL, kind = 'cubic') # Gross Leak
 
 
 def code(value):
@@ -86,8 +88,8 @@ pin = ''
 root = Tk()
 root.title("PIN")
 root.configure(bg='#132237')
-root.geometry("800x600")
-# root.attributes('-fullscreen',True)
+# root.geometry("800x600")
+root.attributes('-fullscreen',True)
 # root.eval('tk::PlaceWindow . center')
 
 labeltitle=Label(root,text='Helium Leak Detector Test',font=('bold',16),fg='white',bg='#132237')
@@ -96,7 +98,7 @@ labeltitle.grid(row=0,column=0,padx=20,pady=(20,0))
 labelOP=Label(root,text='Input Operator PIN:',font=('bold',14),fg='white',bg='#132237')
 labelOP.grid(row=1,column=0,columnspan=2,sticky=S)
 
-infolabel1root=Label(root,text='V2, JTG 6/18/2021',font=('italics',8),fg='white',bg='#132237')
+infolabel1root=Label(root,text='V2, JTG 6/22/2021',font=('italics',8),fg='white',bg='#132237')
 infolabel1root.grid(row=6,column=4,sticky=E)
 
 error_label=Label(root,text='',font=('bold',14),fg='white',bg='#132237')
@@ -127,6 +129,7 @@ for y, row in enumerate(keys, 2):
 pin_exit = Button(root, text='EXIT',font=('bold',18),command=kill_PIN,fg='white',bg="firebrick4")
 pin_exit.grid(row=6, column=3,pady=5,ipadx=10, ipady=5)
 
+# Used for better spacing on screen
 labelblank=Label(root,text='              ',font=(20),fg='white',bg='#132237')
 labelblank.grid(row=3,column=1,padx=10,pady=10)
 
@@ -145,10 +148,12 @@ def openwindow():
         def run():
             while (switch == True):
                 ADC_Value = ADC.ADS1256_GetAll()
-                R1 = 4703
+                
+                R1 = 4703 # Resistor values measured using multimeter, subject to change
                 R2 = 2189
-                Vout2 = ADC_Value[2]*5.0/0x7fffff
-                Vs2 = (Vout2*(R1+R2))/(R2)
+                
+                Vout2 = ADC_Value[2]*5.0/0x7fffff # Input voltage into Pi
+                Vs2 = (Vout2*(R1+R2))/(R2) # Actual Voltage
                 interpFLVs2 = FL(Vs2)
                 interpGLVs2 = GL(Vs2)
                 FLVs2 = interpFLVs2*(1.0)
@@ -196,8 +201,8 @@ def openwindow():
 
     window = Toplevel(root)
     window.title("Helium Leak Detector")
-    window.geometry("800x600")
-#     window.attributes('-fullscreen',True)
+#     window.geometry("800x600")
+    window.attributes('-fullscreen',True)
     window.configure(bg='#132237')
     #     window.eval('tk::PlaceWindow . center')
 
@@ -219,7 +224,7 @@ def openwindow():
     label4=Label(window,text='Serial # (if applicable):',font=('bold',16),fg='white',bg='#132237')
     label4.grid(row=5,column=0,padx=5,pady=10)
 
-    infolabel1=Label(window,text='V2, JTG 6/18/2021',font=('italics',8),fg='white',bg='#132237')
+    infolabel1=Label(window,text='V2, JTG 6/22/2021',font=('italics',8),fg='white',bg='#132237')
     infolabel1.grid(row=6,column=2,sticky=S)
 
     emptylabel2 = Label(window,text='',fg='yellow',font=('bold',20),bg='#132237')
@@ -237,11 +242,11 @@ def openwindow():
     entry1.grid(row = 2,column = 1,ipadx=30,ipady=5)
     entry1.focus_set()
 
-    entry2 = Entry(window, textvariable=QTY)
-    entry2.grid(row = 4,column = 1,ipadx=30,ipady=5)
-
     entry3 = Entry(window, textvariable=MAT)
     entry3.grid(row = 3,column = 1,ipadx=30,ipady=5)
+    
+    entry2 = Entry(window, textvariable=QTY)
+    entry2.grid(row = 4,column = 1,ipadx=30,ipady=5)
 
     entry4 = Entry(window, textvariable=SER)
     entry4.grid(row = 5,column = 1,ipadx=30,ipady=5)
@@ -251,7 +256,7 @@ def openwindow():
             entry3.focus_set()
         if len(MAT.get()) >= 7:
             entry2.focus_set()
-        if len(MAT.get()) >= 2:
+        if len(QTY.get()) >= 2:
             entry4.focus_set()
 
     WO.trace("w", lambda *args: character_limit(WO))
