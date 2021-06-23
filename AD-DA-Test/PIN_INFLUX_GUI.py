@@ -142,22 +142,21 @@ def openwindow():
         entry2.delete(0, END)
         entry3.delete(0, END)
         entry4.delete(0, END)
+        entry1.focus_set()
         return None
             
     def influxdb():
         def run():
+            R1 = 4703 # Resistor values measured using multimeter, subject to change
+            R2 = 2189
             while (switch == True):
                 ADC_Value = ADC.ADS1256_GetAll()
-                
-                R1 = 4703 # Resistor values measured using multimeter, subject to change
-                R2 = 2189
-                
                 Vout2 = ADC_Value[2]*5.0/0x7fffff # Input voltage into Pi
                 Vs2 = (Vout2*(R1+R2))/(R2) # Actual Voltage
                 interpFLVs2 = FL(Vs2)
-                interpGLVs2 = GL(Vs2)
+#                 interpGLVs2 = GL(Vs2)
                 FLVs2 = interpFLVs2*(1.0)
-                GLVs2 = interpGLVs2*(1.0)
+#                 GLVs2 = interpGLVs2*(1.0)
                 write_api = client.write_api(write_options=SYNCHRONOUS)
                 point = Point("Helium Leak Detector")\
                     .tag("Operator", "{}".format(UserName))\
@@ -168,9 +167,11 @@ def openwindow():
                     .field("Leak Rate", FLVs2)\
                     .time(datetime.utcnow(), WritePrecision.MS)
                 write_api.write(bucket, org, point)
-                print(FLVs2)
-                print("\n")
+                infolabel2.config(text='Leak Rate:\n%.2E'% FLVs2)
+#                 print(FLVs2)
+#                 print("\n")
                 if switch == False:
+                    infolabel2.config(text='Leak Rate:')
                     break
         thread = threading.Thread(target=run)
         thread.start()
@@ -226,7 +227,10 @@ def openwindow():
 
     infolabel1=Label(window,text='V2, JTG 6/22/2021',font=('italics',8),fg='white',bg='#132237')
     infolabel1.grid(row=6,column=2,sticky=S)
-
+    
+    infolabel2 = Label(window,text='Leak Rate:',fg='SeaGreen3',font=('bold',16),bg='#132237')
+    infolabel2.grid(row=6,column=2)
+    
     emptylabel2 = Label(window,text='',fg='yellow',font=('bold',20),bg='#132237')
     emptylabel2.grid(row=1,column=1)
 
@@ -251,17 +255,24 @@ def openwindow():
     entry4 = Entry(window, textvariable=SER)
     entry4.grid(row = 5,column = 1,ipadx=30,ipady=5)
 
-    def character_limit(entry_text):
-        if len(WO.get()) >= 7: # number of characters long for barcode
-            entry3.focus_set()
-        if len(MAT.get()) >= 7:
-            entry2.focus_set()
-        if len(QTY.get()) >= 2:
-            entry4.focus_set()
+    def get_key(event):
+        global barcode
+        if event.keysym == 'Return':
+            if len(WO.get()) > 0:
+                entry3.focus()
+            if len(MAT.get()) > 0:
+                entry2.focus()
+            if len(QTY.get()) > 0:
+                entry4.focus()
+            if len(SER.get()) > 0:
+                begin_button.focus()
+            
+    barcode = ''
+    
+    window.bind('<Key>',get_key)
 
-    WO.trace("w", lambda *args: character_limit(WO))
-    MAT.trace("w", lambda *args: character_limit(MAT))
-    QTY.trace("w", lambda *args: character_limit(QTY))
+
+
 
     clear_button = Button(window, text="Clear All" ,font=('bold',16),fg='white', bg='firebrick4',command=clear_command)
     clear_button.grid(row=3,column=2, padx=20,pady=5,ipadx=10, ipady=10)
