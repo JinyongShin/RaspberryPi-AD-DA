@@ -1,6 +1,6 @@
 -- TEST FOLDER --
 
-This folder is meant to be a playground for figuring out how to record data using the Waveshare High-Precison AD-DA Board
+This folder is meant to be a repository for all code related to the Helium Leak Detector Data Automation
 
 - Primarily done in python 3
 
