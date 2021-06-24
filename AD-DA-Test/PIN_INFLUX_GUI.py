@@ -14,6 +14,7 @@ import mysql.connector
 from scipy.interpolate import interp1d
 
 switch = True
+
 ADC = ADS1256.ADS1256()
 ADC.ADS1256_init()
 
@@ -148,7 +149,7 @@ def openwindow():
     def influxdb():
         def run():
             R1 = 4703 # Resistor values measured using multimeter, subject to change
-            R2 = 2189
+            R2 = 2192
             while (switch == True):
                 ADC_Value = ADC.ADS1256_GetAll()
                 Vout2 = ADC_Value[2]*5.0/0x7fffff # Input voltage into Pi
@@ -158,7 +159,7 @@ def openwindow():
                 FLVs2 = interpFLVs2*(1.0)
 #                 GLVs2 = interpGLVs2*(1.0)
                 write_api = client.write_api(write_options=SYNCHRONOUS)
-                point = Point("Helium Leak Detector")\
+                point = Point("He Leak Detector - DT")\
                     .tag("Operator", "{}".format(UserName))\
                     .tag("Work Order","{}".format(WO.get()))\
                     .tag("Work Order Quantity","{}".format(QTY.get()))\
@@ -232,10 +233,10 @@ def openwindow():
     infolabel2.grid(row=6,column=2)
     
     emptylabel2 = Label(window,text='',fg='yellow',font=('bold',20),bg='#132237')
-    emptylabel2.grid(row=1,column=1)
+    emptylabel2.grid(row=0,column=1,rowspan=2)
 
     emptylabel4 = Label(window,text='',fg='red',font=('bold',20),bg='#132237')
-    emptylabel4.grid(row=1,column=2)
+    emptylabel4.grid(row=0,column=2,rowspan=2)
 
     WO=StringVar()
     QTY=StringVar()
