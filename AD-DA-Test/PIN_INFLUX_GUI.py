@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import datetime
+import time
 import ADS1256
 import os
 import pandas as pd
@@ -43,6 +44,7 @@ def code(value):
 
     def default_label():
         error_label.config(text='')
+        return
         
     if value == '*':
         pin = pin[:-1]
@@ -70,11 +72,12 @@ def code(value):
             if pin == UserPIN:
                 openwindow()
                 
-            else:
-                pin = ''
-                e.delete('0', 'end')
-                error_label.config(text='PIN ERROR!')
-                root.after(1500, default_label) 
+        else:
+            pin = ''
+            e.delete('0', 'end')
+            error_label.config(text='PIN ERROR!')
+            root.after(1500, default_label)
+            
     
     else:
         pin += value
@@ -151,7 +154,7 @@ def openwindow():
     def influxdb():
         def run():
             with open(filename,'w',newline='') as log:
-                log.write("Time,Operator,Production Order, Material, Quantity, Serial,Leak Rate\n")
+                log.write("Time,Operator,Production Order,Material #,Quantity,Serial #,Leak Rate\n")
                 while (switch == True):
                     ADC_Value = ADC.ADS1256_GetAll()
                     R1 = 4703
@@ -160,11 +163,14 @@ def openwindow():
                     Vs2 = ((Vout2)*((R1+R2)/(R2)))
                     interpFLVs2 = FL(Vs2)
                     FLVs2 = interpFLVs2*(1.0)
-                    now = datetime.utcnow()
+                    now = datetime.now()
                     log.write("{0},{1},{2},{3},{4},{5},{6}\n".format(now,str(UserName),str(WO.get()),str(MAT.get()),str(QTY.get()),str(SER.get()),FLVs2))
                     infolabel2.config(text='Leak Rate:\n%.2E'% FLVs2)
+                    time.sleep(0.05)
                 if switch == False:
                     infolabel2.config(text='Leak Rate:')
+                    emptylabel2.config(text='TEST\nSTOPPED',fg='red')
+                    window.after(2000, clear_label)
                     file_path = r'/home/pi/Data_Logging_Test/'+filename
                     csvReader = pd.read_csv(file_path)
                     while True:
@@ -178,8 +184,8 @@ def openwindow():
                             write_api = client.write_api(write_options=SYNCHRONOUS)
                             json_body = [
                                 {
-                                    "measurement": "Test3CSV",
-                            #         "time": metric[0],
+                                    "measurement": "He Leak Detector-DT-LIVE",
+#                                     "time": row[0],
                                     "tags": {
                                         "Operator": tag1,
                                         "Production Order": tag2,
@@ -189,11 +195,16 @@ def openwindow():
                                                     },
                                     "fields": {
                                             "Leak Rate": fieldValue
-                                     }
+                                    }
                                 }
                             ]
 #                         print(json_body)
                             write_api.write(bucket,org,json_body)
+                            emptylabel4.config(text='UPLOADING...',fg='yellow')
+                            if row_index == len(csvReader.index)-1:
+                                emptylabel4.config(text='DONE',fg='red')
+                                window.after(3000, clear_label)
+                                break
                         break
         thread = threading.Thread(target=run)
         thread.start()        
@@ -210,10 +221,9 @@ def openwindow():
         switch = False
         print ('Test Ended')
         emptylabel2.config(text='')
-        emptylabel4.config(text='STOPPED')
-        window.after(1500, clear_label)
         
     def clear_label():
+        emptylabel2.config(text='')
         emptylabel4.config(text='')
         
     def kill():
