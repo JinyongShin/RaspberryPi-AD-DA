@@ -2,21 +2,23 @@
 
 from datetime import datetime
 import ADS1256
-
-from influxdb_client import InfluxDBClient, Point, WritePrecision
+import os
+import pandas as pd
+from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
-
 from tkinter import *
 import threading
-
 import mysql.connector
-
 from scipy.interpolate import interp1d
 
 switch = True
 
 ADC = ADS1256.ADS1256()
 ADC.ADS1256_init()
+
+os.chdir("/home/pi/Data_Logging_Test")
+date = datetime.now().strftime("%d-%B-%Y_%H-%M-%S")
+filename = date+".csv"
 
 # You can generate a Token from the "Tokens Tab" in the UI
 token = "88G02Se715xyc9nQUuM4YdMyMVTsMHEJ4lzgkyVYF81YPlsCknKqNildzZWXpArDOQPRl_8cMao2sUIETBksTg=="
@@ -29,9 +31,9 @@ Volts = [0,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75
 Signal_He_FL = [0,3.07E-12,1.12E-11,2.08E-11,3.20E-11,4.51E-11,6.03E-11,7.80E-11,9.84E-11,1.22E-10,1.49E-10,1.80E-10,2.16E-10,2.57E-10,3.04E-10,3.57E-10,4.18E-10,4.88E-10,5.67E-10,6.56E-10,7.58E-10,8.74E-10,1.00E-09,1.15E-09,1.32E-09,1.51E-09,1.73E-09,1.97E-09,2.25E-09,2.56E-09,2.91E-09,3.30E-09,3.75E-09,4.25E-09,4.82E-09,5.46E-09,6.18E-09,6.99E-09,7.91E-09,8.93E-09,1.01E-08,1.14E-08,1.29E-08,1.45E-08,1.64E-08,1.85E-08,2.08E-08,2.35E-08,2.64E-08,2.98E-08,3.35E-08,3.77E-08,4.25E-08,4.78E-08,5.38E-08,6.05E-08,6.81E-08,7.66E-08,8.61E-08,9.68E-08,1.09E-07,1.22E-07,1.38E-07,1.55E-07,1.74E-07,1.95E-07,2.19E-07,2.46E-07,2.77E-07,3.11E-07,3.49E-07,3.92E-07,4.40E-07,4.95E-07,5.55E-07,6.24E-07,7.00E-07,7.86E-07,8.83E-07,9.91E-07,1.11E-06,1.25E-06,1.40E-06,1.57E-06,1.77E-06,1.98E-06,2.23E-06,2.50E-06,2.81E-06,3.15E-06,3.53E-06,3.97E-06,4.45E-06,5.00E-06,5.61E-06,6.29E-06,7.06E-06,7.93E-06,8.89E-06,9.98E-06,1.26E-05,1.58E-05,1.99E-05,2.51E-05,3.16E-05,3.98E-05,5.01E-05,6.31E-05,7.94E-05,1.00E-04,1.26E-04,1.58E-04,2.00E-04,2.51E-04,3.16E-04,3.98E-04,5.01E-04,6.31E-04,7.94E-04,1.00E-03,1.26E-03,1.58E-03,2.00E-03,2.51E-03,3.16E-03,3.98E-03,5.01E-03,6.31E-03,7.94E-03,1.00E-02]
 Signal_He_GL = [0,3.07E-10,1.12E-09,2.08E-09,3.20E-09,4.51E-09,6.03E-09,7.80E-09,9.84E-09,1.22E-08,1.49E-08,1.80E-08,2.16E-08,2.57E-08,3.04E-08,3.57E-08,4.18E-08,4.88E-08,5.67E-08,6.56E-08,7.58E-08,8.74E-08,1.00E-07,1.15E-07,1.32E-07,1.51E-07,1.73E-07,1.97E-07,2.25E-07,2.56E-07,2.91E-07,3.30E-07,3.75E-07,4.25E-07,4.82E-07,5.46E-07,6.18E-07,6.99E-07,7.91E-07,8.93E-07,1.01E-06,1.14E-06,1.29E-06,1.45E-06,1.64E-06,1.85E-06,2.08E-06,2.35E-06,2.64E-06,2.98E-06,3.35E-06,3.77E-06,4.25E-06,4.78E-06,5.38E-06,6.05E-06,6.81E-06,7.66E-06,8.61E-06,9.68E-06,1.09E-05,1.22E-05,1.38E-05,1.55E-05,1.74E-05,1.95E-05,2.19E-05,2.46E-05,2.77E-05,3.11E-05,3.49E-05,3.92E-05,4.40E-05,4.95E-05,5.55E-05,6.24E-05,7.00E-05,7.86E-05,8.83E-05,9.91E-05,1.11E-04,1.25E-04,1.40E-04,1.57E-04,1.77E-04,1.98E-04,2.23E-04,2.50E-04,2.81E-04,3.15E-04,3.53E-04,3.97E-04,4.45E-04,5.00E-04,5.61E-04,6.29E-04,7.06E-04,7.93E-04,8.89E-04,9.98E-04,1.26E-03,1.58E-03,1.99E-03,2.51E-03,3.16E-03,3.98E-03,5.01E-03,6.31E-03,7.94E-03,1.00E-02,1.26E-02,1.58E-02,2.00E-02,2.51E-02,3.16E-02,3.98E-02,5.01E-02,6.31E-02,7.94E-02,1.00E-01,1.26E-01,1.58E-01,2.00E-01,2.51E-01,3.16E-01,3.98E-01,5.01E-01,6.31E-01,7.94E-01,1.00E+00]
 
-
 FL = interp1d(Volts, Signal_He_FL, kind = 'cubic') # Fine Leak (main)
 GL = interp1d(Volts, Signal_He_GL, kind = 'cubic') # Gross Leak
+
 
 
 def code(value):
@@ -148,35 +150,53 @@ def openwindow():
             
     def influxdb():
         def run():
-            R1 = 4703 # Resistor values measured using multimeter, subject to change
-            R2 = 2192
-            while (switch == True):
-                ADC_Value = ADC.ADS1256_GetAll()
-                Vout2 = ADC_Value[2]*5.0/0x7fffff # Input voltage into Pi
-                Vs2 = (Vout2*(R1+R2))/(R2) # Actual Voltage
-                interpFLVs2 = FL(Vs2)
-#                 interpGLVs2 = GL(Vs2)
-                FLVs2 = interpFLVs2*(1.0)
-#                 GLVs2 = interpGLVs2*(1.0)
-                write_api = client.write_api(write_options=SYNCHRONOUS)
-                point = Point("He Leak Detector - DT")\
-                    .tag("Operator", "{}".format(UserName))\
-                    .tag("Work Order","{}".format(WO.get()))\
-                    .tag("Work Order Quantity","{}".format(QTY.get()))\
-                    .tag("Material #","{}".format(MAT.get()))\
-                    .tag("Serial #","{}".format(SER.get()))\
-                    .field("Leak Rate", FLVs2)\
-                    .time(datetime.utcnow(), WritePrecision.MS)
-                write_api.write(bucket, org, point)
-                infolabel2.config(text='Leak Rate:\n%.2E'% FLVs2)
-#                 print(FLVs2)
-#                 print("\n")
+            with open(filename,'w',newline='') as log:
+                log.write("Time,Operator,Production Order, Material, Quantity, Serial,Leak Rate\n")
+                while (switch == True):
+                    ADC_Value = ADC.ADS1256_GetAll()
+                    R1 = 4703
+                    R2 = 2192
+                    Vout2 = ADC_Value[2]*5.0/0x7fffff
+                    Vs2 = ((Vout2)*((R1+R2)/(R2)))
+                    interpFLVs2 = FL(Vs2)
+                    FLVs2 = interpFLVs2*(1.0)
+                    now = datetime.utcnow()
+                    log.write("{0},{1},{2},{3},{4},{5},{6}\n".format(now,str(UserName),str(WO.get()),str(MAT.get()),str(QTY.get()),str(SER.get()),FLVs2))
+                    infolabel2.config(text='Leak Rate:\n%.2E'% FLVs2)
                 if switch == False:
                     infolabel2.config(text='Leak Rate:')
-                    break
+                    file_path = r'/home/pi/Data_Logging_Test/'+filename
+                    csvReader = pd.read_csv(file_path)
+                    while True:
+                        for row_index, row in csvReader.iterrows():
+                            tag1 = row[1]
+                            tag2 = row[2]
+                            tag3 = row[3]
+                            tag4 = row[4]
+                            tag5 = row[5]
+                            fieldValue = row[6]
+                            write_api = client.write_api(write_options=SYNCHRONOUS)
+                            json_body = [
+                                {
+                                    "measurement": "Test3CSV",
+                            #         "time": metric[0],
+                                    "tags": {
+                                        "Operator": tag1,
+                                        "Production Order": tag2,
+                                        "Material #": tag3,
+                                        "Quantity": tag4,
+                                        "Serial #": tag5
+                                                    },
+                                    "fields": {
+                                            "Leak Rate": fieldValue
+                                     }
+                                }
+                            ]
+#                         print(json_body)
+                            write_api.write(bucket,org,json_body)
+                        break
         thread = threading.Thread(target=run)
-        thread.start()
-        
+        thread.start()        
         
     def switch_on():
         global switch  
@@ -271,9 +291,6 @@ def openwindow():
     barcode = ''
     
     window.bind('<Key>',get_key)
-
-
-
 
     clear_button = Button(window, text="Clear All" ,font=('bold',16),fg='white', bg='firebrick4',command=clear_command)
     clear_button.grid(row=3,column=2, padx=20,pady=5,ipadx=10, ipady=10)
