@@ -18,8 +18,6 @@ ADC = ADS1256.ADS1256()
 ADC.ADS1256_init()
 
 os.chdir("/home/pi/Data_Logging_Test")
-date = datetime.now().strftime("%d-%B-%Y_%H-%M-%S")
-filename = date+".csv"
 
 # You can generate a Token from the "Tokens Tab" in the UI
 token = "88G02Se715xyc9nQUuM4YdMyMVTsMHEJ4lzgkyVYF81YPlsCknKqNildzZWXpArDOQPRl_8cMao2sUIETBksTg=="
@@ -153,6 +151,8 @@ def openwindow():
             
     def influxdb():
         def run():
+            date = datetime.now().strftime("%d-%B-%Y_%H-%M-%S")
+            filename = date+".csv"
             with open(filename,'w',newline='') as log:
                 log.write("Time,Operator,Production Order,Material #,Quantity,Serial #,Leak Rate\n")
                 while (switch == True):
@@ -184,7 +184,7 @@ def openwindow():
                             write_api = client.write_api(write_options=SYNCHRONOUS)
                             json_body = [
                                 {
-                                    "measurement": "He Leak Detector-DT-LIVE",
+                                    "measurement": "He Leak Detector - DT",
 #                                     "time": row[0],
                                     "tags": {
                                         "Operator": tag1,
@@ -213,7 +213,7 @@ def openwindow():
         global switch  
         switch = True  
         print ('Test Started')
-        emptylabel2.config(text='TESTING...')
+        emptylabel2.config(text='TESTING...',fg='SeaGreen3')
         influxdb()
 
     def switch_off():
