@@ -78,8 +78,7 @@ def code(value):
             e.delete('0', 'end')
             error_label.config(text='PIN ERROR!')
             root.after(1500, default_label)
-            
-
+          
     else:
         pin += value
         e.insert('end', value)
@@ -124,8 +123,8 @@ for y, row in enumerate(keys, 2):
         bstar = Button(root, text='DONE', font=('bold',18),command=lambda val=key:code('#'),fg='white',bg="firebrick4")
         bstar.grid(row=4, column=4, ipadx=10, ipady=10)
         
-        bback = Button(root, text='0', font=('bold',36),fg='white', bg='firebrick3',command=lambda val=key:code('0'))
-        bback.grid(row=4, column=3, ipadx=10, ipady=10)
+        bzero = Button(root, text='0', font=('bold',36),fg='white', bg='firebrick3',command=lambda val=key:code('0'))
+        bzero.grid(row=4, column=3, ipadx=10, ipady=10)
         
         bback = Button(root, text='BACK', font=('bold',18),command=lambda val=key:code('*'),fg='white',bg="firebrick4")
         bback.grid(row=4, column=2, ipadx=10, ipady=10)
