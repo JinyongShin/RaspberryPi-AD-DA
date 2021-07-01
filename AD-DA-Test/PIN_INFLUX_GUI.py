@@ -58,32 +58,28 @@ def code(value):
     elif value == '#':
         
         # access SQL database for Operator PINs
-        serverIP='10.10.240.151'
-#         sqlDatabase = 'dt_users'
-#         sqlTable='users'
-        # login can be changed as long as it accesses the database
+        serverIP='10.10.9.107'
+        # sqlDatabase = 'allusers'
+        # sqlTable = 'users'
         sqlUsername ='jgreyshock'
         sqlPassword = 'Welcome21!'
 
         cnx = mysql.connector.connect(user=sqlUsername, password=sqlPassword, host=serverIP)
         cursor = cnx.cursor()
 
-        selectString = 'select UserPIN, UserName from dt_users.users where UserPIN = {}'.format(pin)
+        selectString = 'select UserPIN, UserName from allusers.users where UserPIN={}'.format(pin)
         cursor.execute(selectString)
-        fullResult = cursor.fetchall()
+        Result = cursor.fetchall()
         
-        for UserPIN, UserName in fullResult:
-
-            if pin == UserPIN:
-                openwindow()
-                
+        for UserPIN, UserName in Result:
+            openwindow() 
         else:
             pin = ''
             e.delete('0', 'end')
             error_label.config(text='PIN ERROR!')
             root.after(1500, default_label)
             
-    
+
     else:
         pin += value
         e.insert('end', value)
