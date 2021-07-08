@@ -202,7 +202,7 @@ def openwindow():
                             write_api = client.write_api(write_options=SYNCHRONOUS)
                             json_body = [
                                 {
-                                    "measurement": "TEST1",
+                                    "measurement": "He Leak Detector - DT",
 #                                     "time": row[0],
                                     "tags": {
                                         "Operator": tag1,
