@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Helium_Leak_Detector
 Comment=Record and store data from Helium Leak Tests
-Exec=/home/pi/Helium_Leak_Detector/PIN_INFLUX_GUI.py
+Exec=/home/pi/Helium_Leak_Detector/He_Leak_Detector_Data_Logger_GUI.py
 Icon=/home/pi/Helium_Leak_Detector/Leak_Detector.png
 Terminal=false
 MultipleArgs=false
