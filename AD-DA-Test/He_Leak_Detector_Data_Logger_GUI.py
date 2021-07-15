@@ -177,7 +177,7 @@ def openwindow():
                 count = count+1
             GPIO.add_event_detect(FLOW_SENSOR, GPIO.FALLING, callback=countPulse)
             with open(filename,'w',newline='') as log:
-                log.write("Time,Operator,Production Order,Material #,Quantity,Serial #,Leak Rate,Inlet Pressure,He Flow Rate\n")
+                log.write("Time,Operator,Production Order,Material #,Quantity,Serial #,Leak Rate,Inlet Pressure,Helium Flow\n")
                 while (switch == True):
                     ADC_Value = ADC.ADS1256_GetAll()
                     # measured data for resistors, subject to change. Recorded in ohms
