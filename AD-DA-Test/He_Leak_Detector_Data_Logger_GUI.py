@@ -206,7 +206,7 @@ def openwindow():
 #                     infolabel3.config(text='Leak Rate:')
                     emptylabel2.config(text='STOPPED',fg='red')
                     window.after(2000, clear_label)
-                    file_path = r'/home/pi/Data_Logging_Test/'+filename
+                    file_path = r'/home/pi/Data_Logging/'+filename
                     csvReader = pd.read_csv(file_path)
                     while True:
                         for row_index, row in csvReader.iterrows():
@@ -232,7 +232,7 @@ def openwindow():
                                                     },
                                     "fields": {
                                             "Leak Rate": fieldValue1,
-                                            "Inlet Pressure": fieldValue2
+                                            "Inlet Pressure": fieldValue2,
                                             "Helium Flow": fieldValue3
                                     }
                                 }
