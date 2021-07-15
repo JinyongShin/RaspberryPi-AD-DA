@@ -12,7 +12,7 @@ import threading
 import mysql.connector
 from scipy.interpolate import interp1d
 import RPi.GPIO as GPIO
-import time, sys
+import sys
 
 
 # global switch initialize
