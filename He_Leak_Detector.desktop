@@ -6,4 +6,4 @@ Icon=/home/pi/Helium_Leak_Detector/Leak_Detector.png
 Terminal=false
 MultipleArgs=false
 Type=Application
-StartupNotify=true
+StartupNotify=false
