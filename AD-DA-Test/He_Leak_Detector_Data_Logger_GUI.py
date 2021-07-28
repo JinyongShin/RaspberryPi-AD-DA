@@ -46,8 +46,6 @@ Inlet_Pressure = [0,1.0E-3,2.0E2,1E3]
 
 IP = interp1d(Volts2, Inlet_Pressure)
 
-Flow_window = [0,0,0,0,0,0,0,0,0,0]
-
 # PIN window
 def code(value):
 
@@ -105,7 +103,6 @@ pin = ''
 root = Tk()
 root.title("PIN")
 root.configure(bg='#132237')
-# root.geometry("800x600")
 root.attributes('-fullscreen',True)
 
 labeltitle=Label(root,text='He Leak - Data Collection',font=('bold',16),fg='white',bg='#132237')
@@ -198,10 +195,6 @@ def openwindow():
                     now = datetime.now()
                     
                     # Flow counter record and reset
-#                     Flow_index = Flow_index+1
-#                     Flow_index = Flow_index%10
-#                     Flow_window[Flow_index] = count
-#                     Flow_rate = sum(Flow_window)/10
                     countfinal = count
                     count = 0
                     
@@ -286,7 +279,6 @@ def openwindow():
     # creates second window on top of first widnow
     window = Toplevel(root)
     window.title("Helium Leak Detector")
-#     window.geometry("800x600")
     window.attributes('-fullscreen',True)
     window.configure(bg='#132237')
 
@@ -310,14 +302,6 @@ def openwindow():
 
     infolabel1=Label(window,text='V2, JTG 7/16/2021',font=('italics',8),fg='white',bg='#132237')
     infolabel1.grid(row=6,column=2,sticky=S)
-
-# for a live read of the Inlet Pressure and Leak Rate, uncomment these sections.
-# not particularly necessary since the readout is already on the machine
-#     infolabel2 = Label(window,text='Inlet Pressure:',fg='SeaGreen3',font=('bold',16),bg='#132237')
-#     infolabel2.grid(row=5,column=2)
-#     
-#     infolabel3 = Label(window,text='Leak Rate:',fg='SeaGreen3',font=('bold',16),bg='#132237')
-#     infolabel3.grid(row=6,column=2)
     
     emptylabel2 = Label(window,text='',fg='yellow',font=('bold',20),bg='#132237')
     emptylabel2.grid(row=0,column=1,rowspan=2)
