@@ -13,6 +13,7 @@ import mysql.connector
 from scipy.interpolate import interp1d
 import RPi.GPIO as GPIO
 import sys
+import csv
 
 
 # global switch initialize
@@ -51,6 +52,7 @@ def code(value):
 
     global pin
     global UserPIN, UserName
+    global col0, col1, k
 
     def default_label():
         error_label.config(text='')
@@ -65,27 +67,53 @@ def code(value):
     # done button
     elif value == '#':
         
-        # access SQL database for Operator PINs
-        serverIP='10.10.9.107'
-        # sqlDatabase = 'allusers'
-        # sqlTable = 'users'
-        sqlUsername ='jgreyshock'
-        sqlPassword = 'Welcome21!'
+        try:
+            # access SQL database for Operator PINs
+            serverIP='10.10.9.107'
+            # sqlDatabase = 'allusers'
+            # sqlTable = 'users'
+            sqlUsername ='jgreyshock'
+            sqlPassword = 'Welcome21!'
 
-        cnx = mysql.connector.connect(user=sqlUsername, password=sqlPassword, host=serverIP)
-        cursor = cnx.cursor()
+            cnx = mysql.connector.connect(user=sqlUsername, password=sqlPassword, host=serverIP)
+            cursor = cnx.cursor()
 
-        selectString = 'select UserPIN, UserName from allusers.users where UserPIN={}'.format(pin)
-        cursor.execute(selectString)
-        Result = cursor.fetchall()
-        
-        for UserPIN, UserName in Result:
-            openwindow() 
-        else:
-            pin = ''
-            e.delete('0', 'end')
-            error_label.config(text='PIN ERROR!')
-            root.after(1500, default_label)
+            selectString = 'select UserPIN, UserName from allusers.users where UserPIN={}'.format(pin)
+            cursor.execute(selectString)
+            Result = cursor.fetchall()
+            
+            for UserPIN, UserName in Result:
+                openwindow() 
+            else:
+                pin = ''
+                e.delete('0', 'end')
+                error_label.config(text='PIN ERROR!')
+                root.after(1500, default_label)
+                
+        except:
+            os.chdir("/home/pi/Helium_Leak_Detector")
+            
+            data = []
+            with open('Diamond_Turning_Operators_7_29_21.csv') as Operators_backup:
+                reader = csv.reader(Operators_backup)
+                for row in reader:
+                    data.append(row)
+                    
+            col0 = [x[0] for x in data]
+            col1 = [x[1] for x in data]
+            
+            if pin in col0:
+                
+                for k in range(0,len(col0)):
+                    if col0[k] == pin:
+                        UserName = str(col1[k])
+                        os.chdir("/home/pi/Data_Logging")
+                        openwindow()
+            else:
+                pin = ''
+                e.delete('0', 'end')
+                error_label.config(text='PIN ERROR!')
+                root.after(1500, default_label) 
           
     else:
         pin += value
@@ -103,6 +131,7 @@ pin = ''
 root = Tk()
 root.title("PIN")
 root.configure(bg='#132237')
+# root.geometry("800x600")
 root.attributes('-fullscreen',True)
 
 labeltitle=Label(root,text='He Leak - Data Collection',font=('bold',16),fg='white',bg='#132237')
@@ -167,23 +196,30 @@ def openwindow():
             FLOW_SENSOR = 23
             GPIO.setmode(GPIO.BCM)
             GPIO.setup(FLOW_SENSOR, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+            
             global count
             count = 0
+            
             def countPulse(channel):
                 global count
                 count = count+1
+                
             GPIO.add_event_detect(FLOW_SENSOR, GPIO.FALLING, callback=countPulse)
+            
             date = datetime.now().strftime("%d-%B-%Y_%H-%M-%S")
             filename = date+".csv"
             with open(filename,'w',newline='') as log:
                 log.write("Time,Operator,Production Order,Material #,Quantity,Serial #,Leak Rate,Inlet Pressure,He_Flow_Rate\n")
+                
                 while (switch == True):
                     ADC_Value = ADC.ADS1256_GetAll()
+                    
                     # measured data for resistors, subject to change. Recorded in ohms
                     R1 = 4703
                     R2 = 2192
                     R3 = 2194
                     R4 = 997
+                    
                     Vout2 = ADC_Value[2]*5.0/0x7fffff
                     Vout3 = ADC_Value[3]*5.0/0x7fffff
                     Vs2 = ((Vout2)*((R1+R2)/(R2)))
@@ -200,53 +236,71 @@ def openwindow():
                     
                     #write to CSV
                     log.write("{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(now,str(UserName),str(WO.get()),str(MAT.get()),str(QTY.get()),str(SER.get()),FLVs2,IPVs3,countfinal))
-                    time.sleep(0.1)
+                        
+                    time.sleep(0.05)
                 
                 if switch == False:
-                    emptylabel2.config(text='STOPPED',fg='red')
-                    window.after(2000, clear_label)
-                    file_path = r'/home/pi/Data_Logging/'+filename # if folder name changes for CSV log, make sure to change it here and at the start of the script
-                    df = pd.read_csv(file_path)
-                    df['He Flow Avg'] = df.He_Flow_Rate.rolling(window=10).mean()
-                    df['He Flow Avg'] = df['He Flow Avg'].fillna(0)
-                    while True:
-                        for row_index, row in df.iterrows():
-                            tag1 = row[1]
-                            tag2 = row[2]
-                            tag3 = row[3]
-                            tag4 = row[4]
-                            tag5 = row[5]
-                            fieldValue1 = row[6]
-                            fieldValue2 = row[7]
-                            fieldValue3 = row[9]
-                            write_api = client.write_api(write_options=SYNCHRONOUS)
-                            json_body = [
-                                {
-                                    "measurement": "He Leak - Diamond Turning", # change this to write to different measurement grouping
-#                                     "time": row[0],
-                                    "tags": {
-                                        "Operator": tag1,
-                                        "Production Order": tag2,
-                                        "Material #": tag3,
-                                        "Quantity": tag4,
-                                        "Serial #": tag5
-                                                    },
-                                    "fields": {
-                                            "Leak Rate": fieldValue1,
-                                            "Inlet Pressure": fieldValue2,
-                                            "Helium Flow": fieldValue3
+                    
+                    try: 
+                        emptylabel2.config(text='STOPPED',fg='red')
+                        window.after(2000, clear_label1)
+                        file_path = r'/home/pi/Data_Logging/'+filename # if folder name changes for CSV log, make sure to change it here and at the start of the script
+                        df = pd.read_csv(file_path)
+                        df['He Flow Avg'] = df.He_Flow_Rate.rolling(window=10).mean()
+                        df['He Flow Avg'] = df['He Flow Avg'].fillna(0)
+                       
+                        while True:
+                            
+                            for row_index, row in df.iterrows():
+                                tag1 = row[1]
+                                tag2 = row[2]
+                                tag3 = row[3]
+                                tag4 = row[4]
+                                tag5 = row[5]
+                                fieldValue1 = row[6]
+                                fieldValue2 = row[7]
+                                fieldValue3 = row[9]
+                                write_api = client.write_api(write_options=SYNCHRONOUS)
+                                json_body = [
+                                    {
+                                        "measurement": "TEST5", # change this to write to different measurement grouping
+                                        "tags": {
+                                            "Operator": tag1,
+                                            "Production Order": tag2,
+                                            "Material #": tag3,
+                                            "Quantity": tag4,
+                                            "Serial #": tag5
+                                                        },
+                                        "fields": {
+                                                "Leak Rate": fieldValue1,
+                                                "Inlet Pressure": fieldValue2,
+                                                "Helium Flow": fieldValue3
+                                        }
                                     }
-                                }
-                            ]
-#                         print(json_body)
-                            write_api.write(bucket,org,json_body)
-                            emptylabel4.config(text='UPLOADING...\n{:.0f}%'.format((row_index/len(df))*100),fg='yellow') # shows the % of CSV data uploaded to influxdb
-                            # when the upload has made it through every line of the CSV file and uploaded it to InfluxDB
-                            if row_index == len(df.index)-1:
-                                emptylabel4.config(text='DONE',fg='red')
-                                window.after(3000, clear_label)
-                                break
-                        break
+                                ]
+                                write_api.write(bucket,org,json_body)
+                                
+                                emptylabel4.config(text='UPLOADING...\n{:.0f}%'.format((row_index/len(df))*100),fg='yellow') # shows the % of CSV data uploaded to influxdb
+                                # when the upload has made it through every line of the CSV file and uploaded it to InfluxDB
+                                if row_index == len(df.index)-1:
+                                    emptylabel4.config(text='DONE',fg='red')
+                                    break
+                            
+                            break
+                        
+                    except:
+                        emptylabel2.config(text='STOPPED',fg='red')
+                        window.after(500, clear_label1)
+                        time.sleep(0.5)
+                        emptylabel3.config(text='UPLOAD FAILED',fg='red')
+                        
+                        os.chdir("/home/pi/Helium_Leak_Detector")
+                        
+                        with open('Failed_Uploads_to_InfluxDB.txt','a',newline='') as Failed_Upload:
+                            Failed_Upload.write('{}\n'.format(filename))
+                            
+                        os.chdir("/home/pi/Data_Logging")
+                        
         thread = threading.Thread(target=run)
         thread.start()        
     
@@ -254,7 +308,6 @@ def openwindow():
     def switch_on():
         global switch  
         switch = True  
-        print ('Test Started')
         emptylabel2.config(text='TESTING...',fg='SeaGreen3')
         influxdb()
     
@@ -262,13 +315,15 @@ def openwindow():
     def switch_off():
         global switch  
         switch = False
-        print('Test Ended')
         emptylabel2.config(text='')
     
-    # clears live label
-    def clear_label():
+    # clears live labels
+    def clear_label1():
         emptylabel2.config(text='')
         emptylabel4.config(text='')
+        
+    def clear_label2():
+        emptylabel3.config(text='')
     
     # exits program
     def kill():
@@ -279,14 +334,17 @@ def openwindow():
     # creates second window on top of first widnow
     window = Toplevel(root)
     window.title("Helium Leak Detector")
+#     window.geometry("800x600")
     window.attributes('-fullscreen',True)
     window.configure(bg='#132237')
-
+    
     label0=Label(window,text='He Leak - Data Collection',font=('bold',18),fg='white',bg='#132237')
     label0.grid(row=0,column=0,padx=20,pady=(20,10))
+    
 
     labelname=Label(window,text='Logged in as: {}'.format(UserName),wraplength=350,font=('bold',14),fg='gray80',bg='#132237')
     labelname.grid(row=1,column=0)
+
 
     label1=Label(window,text='Production Order:',font=('bold',16),fg='white',bg='#132237')
     label1.grid(row=2,column=0,padx=5,pady=10)
@@ -303,10 +361,13 @@ def openwindow():
     infolabel1=Label(window,text='V2, JTG 7/16/2021',font=('italics',8),fg='white',bg='#132237')
     infolabel1.grid(row=6,column=2,sticky=S)
     
-    emptylabel2 = Label(window,text='',fg='yellow',font=('bold',20),bg='#132237')
+    emptylabel2 = Label(window,fg='yellow',font=('bold',20),bg='#132237')
     emptylabel2.grid(row=0,column=1,rowspan=2)
 
-    emptylabel4 = Label(window,text='',fg='red',font=('bold',20),bg='#132237')
+    emptylabel3 = Label(window,fg='red',font=('bold',20),bg='#132237')
+    emptylabel3.grid(row=0,column=1,rowspan=2, columnspan=2)
+
+    emptylabel4 = Label(window,fg='red',font=('bold',20),bg='#132237')
     emptylabel4.grid(row=0,column=2,rowspan=2)
 
     WO=StringVar()
