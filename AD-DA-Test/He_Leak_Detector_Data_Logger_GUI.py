@@ -26,11 +26,12 @@ ADC.ADS1256_init()
 # folder to store CSV data
 os.chdir("/home/pi/Data_Logging")
 
+# establishes connection to influxDB
 # You can generate a Token from the "Tokens Tab" in the UI
 token = "88G02Se715xyc9nQUuM4YdMyMVTsMHEJ4lzgkyVYF81YPlsCknKqNildzZWXpArDOQPRl_8cMao2sUIETBksTg=="
 org = "saxire"
-bucket = "dev_bucket" # change to write to different bucket
-measurement = "TEST7" # change to write to a different measurement filter
+bucket = "helium_leak_test" # change to write to different bucket
+measurement = "Diamond Turning" # change to write to a different measurement filter
 client = InfluxDBClient(url="http://glin.saxire.net", token=token)
 
 # Voltage and Leak Rate conversion data pulled from Detector manual
@@ -42,6 +43,7 @@ FL = interp1d(Volts, Signal_He_FL) # Fine Leak (main data set used for conversio
 GL = interp1d(Volts, Signal_He_GL) # Gross Leak
 
 # estimated/recorded values used to determine the conversion of voltage to inlet pressure
+# inlet pressure has two settings, no vaccuum and vaccuum
 Volts2 = [0,2.45,7.07,10]
 Inlet_Pressure = [0,1.0E-3,2.0E2,1E3]
 
@@ -54,6 +56,7 @@ def code(value):
     global UserPIN, UserName
     global col0, col1, i
 
+    # clear pin error label
     def default_label():
         error_label.config(text='')
         return
@@ -68,6 +71,7 @@ def code(value):
     elif value == '#':
         
         try:
+            
             """
 
             Access SQL database for Operator PINs
@@ -102,8 +106,8 @@ def code(value):
             data = []
             with open('Diamond_Turning_Operators_7_29_21.csv') as Operators_backup:
                 reader = csv.reader(Operators_backup)
-                for row2 in reader:
-                    data.append(row2)
+                for operator in reader:
+                    data.append(operator)
                     
             col0 = [x[0] for x in data]
             col1 = [x[1] for x in data]
@@ -146,7 +150,7 @@ labeltitle.grid(row=0,column=0,padx=20,pady=(20,0))
 labelOP=Label(root,text='Input Operator PIN:',font=('bold',14),fg='white',bg='#132237')
 labelOP.grid(row=1,column=0,columnspan=2,sticky=S)
 
-infolabel1root=Label(root,text='V2, JTG 7/16/2021',font=('italics',8),fg='white',bg='#132237')
+infolabel1root=Label(root,text='V3, JTG 7/30/2021',font=('italics',8),fg='white',bg='#132237')
 infolabel1root.grid(row=6,column=4,sticky=E)
 
 error_label=Label(root,text='',font=('bold',14),fg='white',bg='#132237')
@@ -186,9 +190,9 @@ pin_exit.grid(row=6, column=3,pady=5,ipadx=10, ipady=5)
 
 
 # Window used to upload tests to InfluxDB that failed to upload because of internet connection, etc.
-def failedtestwindow():
+def offlinetestwindow():
     
-    def failed_test():
+    def offline_test():
         def upload():
             try:
                 # change directory to grab the text document that has the names of CSV files saved
@@ -267,7 +271,7 @@ def failedtestwindow():
         window2.destroy()
         
     window2 = Toplevel(root)
-    window2.title("Failed Test Window")
+    window2.title("Offline Test Window")
     window2.attributes('-fullscreen',True)
     window2.configure(bg='#132237')
     
@@ -287,8 +291,11 @@ def failedtestwindow():
     statuslabel = Label(window2,text='STATUS:',fg='white',borderwidth=1,relief="raised",font=('bold',16),bg='#132237')
     statuslabel.grid(row=3,column=0,rowspan=2,pady=25)
     
+    infolabel1window2=Label(window2,text='V3, JTG 7/30/2021',font=('italics',8),fg='white',bg='#132237')
+    infolabel1window2.grid(row=4,column=0)
+    
     #buttons
-    upload_button = Button(window2, text="UPLOAD" ,font=('bold',20),fg='white', bg='firebrick4',command=failed_test)
+    upload_button = Button(window2, text="UPLOAD" ,font=('bold',20),fg='white', bg='firebrick4',command=offline_test)
     upload_button.grid(row=1,column=0,pady=25,padx=15,ipady=20)
     
     back2_button = Button(window2, text="BACK" ,font=('bold',20),fg='white', bg='firebrick4',command=back_to_test)
@@ -341,6 +348,7 @@ def openwindow():
                     ADC_Value = ADC.ADS1256_GetAll()
                     
                     # measured data for resistors, subject to change. Recorded in ohms
+                    # used a multimeter to 
                     R1 = 4703
                     R2 = 2192
                     R3 = 2194
@@ -365,11 +373,11 @@ def openwindow():
                     now = datetime.now(UTC)
                     
                     # Flow counter record and reset
-                    countfinal = count
+                    revolutions = count
                     count = 0
                     
                     # write to CSV
-                    log.write("{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(now,str(UserName),str(WO.get()),str(MAT.get()),str(QTY.get()),str(SER.get()),FLVs2,IPVs3,countfinal))
+                    log.write("{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(now,str(UserName),str(WO.get()),str(MAT.get()),str(QTY.get()),str(SER.get()),FLVs2,IPVs3,revolutions))
                     
                     # time.sleep used to make the script get roughly 10 data points a second
                     time.sleep(0.05)
@@ -437,10 +445,11 @@ def openwindow():
                                 
                                 # when the upload has made it through every line of the CSV file and uploaded it to InfluxDB
                                 if row_index == len(df.index)-1:
-                                    emptylabel4.config(text='DONE',fg='red')
+                                    emptylabel4.config(text='DONE',fg='seagreen3')
                                     # the GPIO sometimes throws an error when multiple tests are tried during same session
-                                    # log back in to do another test
-                                    # RuntimeError: Conflicting edge detection already enabled for this GPIO channel
+                                    # to avoid issue, log back in to do another test
+                                    # error that occurs:
+                                        # RuntimeError: Conflicting edge detection already enabled for this GPIO channel
                                     break
                             
                             break
@@ -471,6 +480,12 @@ def openwindow():
         switch = True
         emptylabel2.config(text='TESTING...',fg='SeaGreen3')
         
+        # locks entry fields from being changed during the test
+        entry1.config(state='disabled')
+        entry2.config(state='disabled')
+        entry3.config(state='disabled')
+        entry4.config(state='disabled')
+        
         # stopwatch to see how long a test has been running for
         def stopwatch():
             second = 0    
@@ -485,6 +500,7 @@ def openwindow():
                     second = 0    
                     minute+=1
                     
+        # thread needed for stopwatch to run but still able to do other actions            
         thread3 = threading.Thread(target=stopwatch)
         thread3.start()
         
@@ -544,7 +560,7 @@ def openwindow():
     label4=Label(window,text='Serial # (if applicable):',font=('bold',16),fg='white',bg='#132237')
     label4.grid(row=5,column=0,padx=5,pady=10)
 
-    infolabel1=Label(window,text='V2, JTG 7/16/2021',font=('italics',8),fg='white',bg='#132237')
+    infolabel1=Label(window,text='V3, JTG 7/30/2021',font=('italics',8),fg='white',bg='#132237')
     infolabel1.grid(row=6,column=2,sticky=S)
     
     emptylabel2 = Label(window,fg='yellow',font=('bold',20),bg='#132237')
@@ -594,8 +610,8 @@ def openwindow():
     end_button = Button(window, text="End Recording" ,font=('bold',20),fg='white', bg='firebrick4',command=switch_off)
     end_button.grid(row=6,column=1,pady=25, padx=15,ipady=20)
     
-    failed_upload_button = Button(window, text="Upload\nFailed Test" ,font=('bold',16),fg='white', bg='firebrick4',command=failedtestwindow)
-    failed_upload_button.grid(row=5,column=2,rowspan=2,pady=25,padx=15,ipady=20)
+    offline_upload_button = Button(window, text="Upload\nOffline Test" ,font=('bold',16),fg='white', bg='firebrick4',command=offlinetestwindow)
+    offline_upload_button.grid(row=5,column=2,rowspan=2,pady=25,padx=15,ipady=20)
 
 mainloop()
 
