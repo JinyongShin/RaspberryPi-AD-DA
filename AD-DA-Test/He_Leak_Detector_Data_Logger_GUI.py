@@ -28,11 +28,13 @@ os.chdir("/home/pi/Data_Logging")
 
 # establishes connection to influxDB
 # You can generate a Token from the "Tokens Tab" in the UI
-token = "88G02Se715xyc9nQUuM4YdMyMVTsMHEJ4lzgkyVYF81YPlsCknKqNildzZWXpArDOQPRl_8cMao2sUIETBksTg=="
+token = ""
+# token deleted
 org = "saxire"
 bucket = "helium_leak_test" # change to write to different bucket
 measurement = "Diamond Turning" # change to write to a different measurement filter
-client = InfluxDBClient(url="http://glin.saxire.net", token=token)
+client = InfluxDBClient(url=".net", token=token)
+# url deleted 
 
 # Voltage and Leak Rate conversion data pulled from Detector manual
 Volts = [0,0.10,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90,0.95,1.00,1.05,1.10,1.15,1.20,1.25,1.30,1.35,1.40,1.45,1.50,1.55,1.60,1.65,1.70,1.75,1.80,1.85,1.90,1.95,2.00,2.05,2.10,2.15,2.20,2.25,2.30,2.35,2.40,2.45,2.50,2.55,2.60,2.65,2.70,2.75,2.80,2.85,2.90,2.95,3.00,3.05,3.10,3.15,3.20,3.25,3.30,3.35,3.40,3.45,3.50,3.55,3.60,3.65,3.70,3.75,3.80,3.85,3.90,3.95,4.00,4.05,4.10,4.15,4.20,4.25,4.30,4.35,4.40,4.45,4.50,4.55,4.60,4.65,4.70,4.75,4.80,4.85,4.90,4.95,5.00,5.10,5.20,5.30,5.40,5.50,5.60,5.70,5.80,5.90,6.00,6.10,6.20,6.30,6.40,6.50,6.60,6.70,6.80,6.90,7.00,7.10,7.20,7.30,7.40,7.50,7.60,7.70,7.80,7.90,8.00]
@@ -83,7 +85,8 @@ def code(value):
             # sqlDatabase = 'allusers'
             # sqlTable = 'users'
             sqlUsername ='jgreyshock'
-            sqlPassword = 'Welcome21!'
+            sqlPassword = ''
+            # password deleted
 
             cnx = mysql.connector.connect(user=sqlUsername, password=sqlPassword, host=serverIP)
             cursor = cnx.cursor()
